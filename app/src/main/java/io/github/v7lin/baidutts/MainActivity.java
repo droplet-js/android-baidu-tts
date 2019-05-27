@@ -189,7 +189,7 @@ public class MainActivity extends Activity {
 
     private List<SpeechSynthesizeBag> buildSpeechSynthesizeBags(List<String> texts) {
         List<SpeechSynthesizeBag> bags = new ArrayList<>();
-        for (int i = 0; i < texts.size(); i ++) {
+        for (int i = 0; i < texts.size(); i++) {
             SpeechSynthesizeBag bag = new SpeechSynthesizeBag();
             bag.setText(texts.get(i));
             bag.setUtteranceId(String.valueOf(i));
