@@ -24,14 +24,14 @@ public class MainActivity extends Activity {
     private static final String APP_KEY = "GtDrwbB5f7Hu9oQGBRljye69";
     private static final String SECRET_KEY = "VYKyRtGERGemDmwepD1Rkyab0NcPV99o";
 
-    private SpeechSynthesizer speechSynthesizer;
+    SpeechSynthesizer speechSynthesizer;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         findViewById(R.id.init).setOnClickListener(onClickListener);
-        findViewById(R.id.start).setOnClickListener(onClickListener);
+        findViewById(R.id.speak).setOnClickListener(onClickListener);
         findViewById(R.id.pause).setOnClickListener(onClickListener);
         findViewById(R.id.resume).setOnClickListener(onClickListener);
         findViewById(R.id.destroy).setOnClickListener(onClickListener);
@@ -44,7 +44,7 @@ public class MainActivity extends Activity {
                 case R.id.init:
                     initTts();
                     break;
-                case R.id.start:
+                case R.id.speak:
                     speak();
                     break;
                 case R.id.pause:
@@ -58,18 +58,15 @@ public class MainActivity extends Activity {
                     }
                     break;
                 case R.id.destroy:
-                    if (speechSynthesizer != null) {
-                        speechSynthesizer.stop();
-                        speechSynthesizer.freeCustomResource();
-                        speechSynthesizer.release();
-                        speechSynthesizer = null;
-                    }
+                    destroy();
+                    break;
+                default:
                     break;
             }
         }
     };
 
-    private void initTts() {
+    void initTts() {
         if (speechSynthesizer == null) {
             LoggerProxy.printable(true);
 
@@ -167,21 +164,21 @@ public class MainActivity extends Activity {
     }
 
     // 合成并播放，512字节
-    private void speak() {
+    void speak() {
         if (speechSynthesizer != null) {
             speechSynthesizer.speak("该接口线程安全，可以重复调用。内部采用排队策略，调用后将自动加入队列，SDK会按照队列的顺序进行合成及播放。 注意需要合成的每个文本text不超过1024的GBK字节，即512个汉字或英文字母数字。超过请自行按照句号问号等标点切分，调用多次合成接口。");
         }
     }
 
     // 仅合成
-    private void synthesize() {
+    void synthesize() {
         if (speechSynthesizer != null) {
             speechSynthesizer.speak("该接口线程安全，可以重复调用。内部采用排队策略，调用后将自动加入队列，SDK会按照队列的顺序进行合成及播放。 注意需要合成的每个文本text不超过1024的GBK字节，即512个汉字或英文字母数字。超过请自行按照句号问号等标点切分，调用多次合成接口。");
         }
     }
 
     // 批量合成并播放接口
-    private void batchSpeak() {
+    void batchSpeak() {
         if (speechSynthesizer != null) {
             speechSynthesizer.batchSpeak(buildSpeechSynthesizeBags(Arrays.asList("该接口线程安全，可以重复调用。", "内部采用排队策略，调用后将自动加入队列，SDK会按照队列的顺序进行合成及播放。")));
         }
@@ -196,5 +193,20 @@ public class MainActivity extends Activity {
             bags.add(bag);
         }
         return bags;
+    }
+
+    void destroy() {
+        if (speechSynthesizer != null) {
+            speechSynthesizer.stop();
+            speechSynthesizer.freeCustomResource();
+            speechSynthesizer.release();
+            speechSynthesizer = null;
+        }
+    }
+
+    @Override
+    protected void onDestroy() {
+        destroy();
+        super.onDestroy();
     }
 }

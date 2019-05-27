@@ -11,29 +11,29 @@
         android:id="@+id/init"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="INIT" />
+        android:text="@string/opt_init" />
 
     <Button
-        android:id="@+id/start"
+        android:id="@+id/speak"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="START" />
+        android:text="@string/opt_speak" />
 
     <Button
         android:id="@+id/pause"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="PAUSE" />
+        android:text="@string/opt_pause" />
 
     <Button
         android:id="@+id/resume"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="RESUME" />
+        android:text="@string/opt_resume" />
 
     <Button
         android:id="@+id/destroy"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="DESTROY" />
+        android:text="@string/opt_destroy" />
 </LinearLayout>
