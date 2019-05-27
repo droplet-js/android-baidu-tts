@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<lint>
+    <issue id="KotlinPropertyAccess" severity="error"/>
+    <issue id="LambdaLast" severity="error"/>
+    <issue id="NoHardKeywords" severity="error"/>
+    <issue id="UnknownNullness" severity="ignore"/>
+    <issue id="SyntheticAccessor" severity="error"/>
+    <issue id="ExportedReceiver" severity="ignore"/>
+</lint>

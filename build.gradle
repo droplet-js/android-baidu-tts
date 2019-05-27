@@ -1,0 +1,151 @@
+// Top-level build file where you can add configuration options common to all sub-projects/modules.
+
+def publishToJFrog() {
+    return 'true' == System.getenv('PUBLISH_TO_JFROG')
+}
+
+def publishToJCenter() {
+    return 'true' == System.getenv('PUBLISH_TO_JCENTER')
+}
+
+def bintrayUser() {
+    return project.hasProperty('BINTRAY_USER') ? project.property('BINTRAY_USER') : System.getenv('BINTRAY_USER')
+}
+
+def bintrayApiKey() {
+    return project.hasProperty('BINTRAY_API_KEY') ? project.property('BINTRAY_API_KEY') : System.getenv('BINTRAY_API_KEY')
+}
+
+def buildVersionCode() {
+    String versionCode = System.getenv('VERSION_CODE')
+    return versionCode != null && !versionCode.isEmpty() ? Integer.valueOf(versionCode) : 1
+}
+
+def buildVersionName() {
+    String versionName = System.getenv('VERSION_NAME')
+    return versionName != null && !versionName.isEmpty() ? versionName : '0.0.1'
+}
+
+def repoName() {
+    String repoName = System.getenv('REPO_NAME')
+    return repoName != null && !repoName.isEmpty() ? repoName : project.name
+}
+
+ext {
+    PUBLISH_TO_JFROG = publishToJFrog()
+
+    PUBLISH_TO_JCENTER = publishToJCenter()
+
+    BINTRAY_USER = bintrayUser()
+    BINTRAY_API_KEY = bintrayApiKey()
+
+    GROUP_ID = 'io.github.v7lin'
+    VERSION_CODE = buildVersionCode()
+    VERSION_NAME = buildVersionName()//'x.y.z'/'x.y.z-SNAPSHOT'
+
+    REPO_NAME = repoName()
+
+    SITE_URL = "https://github.com/v7lin/${REPO_NAME}"
+    GIT_URL = "https://github.com/v7lin/${REPO_NAME}.git"
+    ISSUE_SYSTEM = 'GitHub'
+    ISSUE_TRACKER_URL = "https://github.com/v7lin/${REPO_NAME}/issues"
+
+    LICENSE_APACHE_NAME = 'The Apache Software License, Version 2.0'
+    LICENSE_APACHE_URL = 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+    LICENSES_ALL = ['Apache-2.0']
+
+    DEVELOPER_ID = 'v7lin'
+    DEVELOPER_NAME = 'v7lin'
+    DEVELOPER_EMAIL = 'v7lin@qq.com'
+}
+
+buildscript {
+    repositories {
+        google()
+        jcenter()
+        
+    }
+    dependencies {
+        classpath 'com.android.tools.build:gradle:3.4.1'
+
+        classpath 'com.github.dcendents:android-maven-gradle-plugin:2.1'// https://github.com/dcendents/android-maven-gradle-plugin#note-on-release
+        // publish to JFrog
+        classpath "org.jfrog.buildinfo:build-info-extractor-gradle:4.9.0"
+        // publish to JCenter
+        classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.8.4'// https://github.com/bintray/gradle-bintray-plugin#Getting_Started_Using_the_Plugin
+
+        // NOTE: Do not place your application dependencies here; they belong
+        // in the individual module build.gradle files
+    }
+}
+
+// publish to jcenter 最好加上全局编码设置
+tasks.withType(JavaCompile) {
+    options.encoding = 'UTF-8'
+}
+
+allprojects {
+    repositories {
+        google()
+        jcenter()
+
+        maven {
+            url 'https://oss.jfrog.org/artifactory/oss-snapshot-local'
+        }
+
+        // JCenter 第一个版本审核通过之前需要
+        maven {
+            url  "https://dl.bintray.com/v7lin/maven"
+            credentials {
+                username BINTRAY_USER
+                password BINTRAY_API_KEY
+            }
+        }
+    }
+}
+
+subprojects {
+    ext {
+        // ---
+
+        androidCompileSdkVersion = 28
+        androidBuildToolsVersion = "28.0.3"
+
+        // ---
+
+        androidMinSdkVersion = 21
+        androidTargetSdkVersion = 28
+
+        // ---
+
+        sourceCompatibilityVersion = JavaVersion.VERSION_1_8
+        targetCompatibilityVersion = JavaVersion.VERSION_1_8
+
+        // ---
+
+        junitVersion = '4.12'
+
+        runnerVersion = '1.0.2'
+        espressoVersion = '3.0.2'
+    }
+
+    plugins.apply('checkstyle')
+
+    task('checkstyle', type: Checkstyle) {
+        configFile rootProject.file('checkstyle.xml')
+        source 'src/main/java'
+        ignoreFailures false
+        showViolations true
+        include '**/*.java'
+
+        classpath = files()
+    }
+
+    afterEvaluate {
+        tasks.findByName('check').dependsOn('checkstyle')
+    }
+}
+
+task clean(type: Delete) {
+    delete rootProject.buildDir
+}

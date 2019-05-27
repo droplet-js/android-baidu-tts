@@ -1,0 +1,53 @@
+apply plugin: 'com.android.application'
+
+android {
+    compileSdkVersion androidCompileSdkVersion
+    buildToolsVersion androidBuildToolsVersion
+
+    compileOptions {
+        sourceCompatibility sourceCompatibilityVersion
+        targetCompatibility targetCompatibilityVersion
+    }
+
+    lintOptions {
+        textOutput 'stdout'
+        textReport true
+        lintConfig rootProject.file('lint.xml')
+    }
+
+    defaultConfig {
+        applicationId "io.github.v7lin.baidutts"
+        minSdkVersion androidMinSdkVersion
+        targetSdkVersion androidTargetSdkVersion
+        versionCode VERSION_CODE
+        versionName "${VERSION_NAME}"
+
+        // dex 突破 65535 的限制
+        multiDexEnabled true
+
+        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled true
+            useProguard true
+
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+}
+
+dependencies {
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+
+    if (PUBLISH_TO_JFROG || PUBLISH_TO_JCENTER) {
+        implementation "${GROUP_ID}:baidu-tts-android:${VERSION_NAME}"
+    } else {
+        implementation project(':baidu-tts-android')
+    }
+
+    testImplementation 'junit:junit:4.12'
+    androidTestImplementation "com.android.support.test:runner:${runnerVersion}"
+    androidTestImplementation "com.android.support.test.espresso:espresso-core:${espressoVersion}"
+}

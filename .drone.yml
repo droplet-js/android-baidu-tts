@@ -1,0 +1,66 @@
+kind: pipeline
+name: default
+
+steps:
+- name: check
+  image: runmymind/docker-android-sdk
+  volumes:
+  - name: gradle
+    path: /root/.gradle
+  commands:
+  - ./gradlew clean check
+
+- name: build
+  image: runmymind/docker-android-sdk
+  volumes:
+  - name: gradle
+    path: /root/.gradle
+  commands:
+  - ./gradlew :baidu-tts-android:clean :baidu-tts-android:build
+  - ./gradlew :app:clean :app:build
+
+#- name: snapshot
+#  image: runmymind/docker-android-sdk
+#  volumes:
+#  - name: gradle
+#    path: /root/.gradle
+#  environment:
+#    PUBLISH_TO_JFROG: true
+#    BINTRAY_USER:
+#      from_secret: BINTRAY_USER
+#    BINTRAY_API_KEY:
+#      from_secret: BINTRAY_API_KEY
+#    REPO_NAME: ${DRONE_REPO_NAME}
+#    VERSION_CODE: ${DRONE_BUILD_NUMBER}
+#    VERSION_NAME: 0.0.1-SNAPSHOT
+#  commands:
+#  - ./gradlew :baidu-tts-android:clean :baidu-tts-android:artifactoryPublish
+#  when:
+#    branch:
+#    - master
+#    event:
+#    - push
+
+- name: release
+  image: runmymind/docker-android-sdk
+  volumes:
+  - name: gradle
+    path: /root/.gradle
+  environment:
+    PUBLISH_TO_JCENTER: true
+    BINTRAY_USER:
+      from_secret: BINTRAY_USER
+    BINTRAY_API_KEY:
+      from_secret: BINTRAY_API_KEY
+    REPO_NAME: ${DRONE_REPO_NAME}
+    VERSION_CODE: ${DRONE_BUILD_NUMBER}
+    VERSION_NAME: 0.0.1
+  commands:
+  - ./gradlew :baidu-tts-android:clean :baidu-tts-android:bintrayUpload
+  when:
+    event:
+    - tag
+
+volumes:
+- name: gradle
+  temp: {}
