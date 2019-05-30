@@ -59,19 +59,29 @@ public class MainActivity extends Activity {
                     break;
                 case R.id.online_speaker:
                     if (speechSynthesizer != null) {
-                        destroy();
                         //0 普通女声（默认） 1 普通男声 2 特别男声 3 情感男声<度逍遥> 4 情感儿童声<度丫丫>
                         int speaker = new Random().nextInt(5);
-                        initOnlineTts(speaker);
+//                        destroy();
+//                        initOnlineTts(speaker);
+                        speechSynthesizer.setParam(SpeechSynthesizer.PARAM_SPEAKER, String.valueOf(speaker)); // 设置发声的人声音，在线生效
+                        speechSynthesizer.stop();
                         speak();
                     }
                     break;
                 case R.id.mix_speaker:
-                    if (speechSynthesizer != null) {
+                    try {
+                        if (speechSynthesizer != null) {
+                            int speaker = new Random().nextInt(5);
+//                            destroy();
+//                            initMixTts(speaker);
+                            speechSynthesizer.stop();
+                            speechSynthesizer.setParam(SpeechSynthesizer.PARAM_SPEAKER, String.valueOf(speaker)); // 设置发声的人声音，在线生效
+                            OfflineResource offlineResource = createOfflineResource(speaker);
+                            speechSynthesizer.loadModel(offlineResource.getTextFilename(), offlineResource.getModelFilename());
+                            speak();
+                        }
+                    } catch (IOException e) {
                         destroy();
-                        int speaker = new Random().nextInt(5);
-                        initMixTts(speaker);
-                        speak();
                     }
                     break;
                 case R.id.play:
