@@ -183,6 +183,7 @@ public class MainActivity extends Activity {
                 speechSynthesizer.setParam(SpeechSynthesizer.PARAM_TTS_TEXT_MODEL_FILE, offlineResource.getTextFilename());
                 // 声学模型文件路径 (离线引擎使用)，注意TEXT_FILENAME必须存在并且可读
                 speechSynthesizer.setParam(SpeechSynthesizer.PARAM_TTS_SPEECH_MODEL_FILE, offlineResource.getModelFilename());
+                speechSynthesizer.setParam(SpeechSynthesizer.PARAM_SPEAKER, String.valueOf(speaker)); // 设置发声的人声音，在线生效
                 Map<String, String> params = new HashMap<>();
                 params.put(SpeechSynthesizer.PARAM_TTS_TEXT_MODEL_FILE, offlineResource.getTextFilename());
                 params.put(SpeechSynthesizer.PARAM_TTS_SPEECH_MODEL_FILE, offlineResource.getModelFilename());
