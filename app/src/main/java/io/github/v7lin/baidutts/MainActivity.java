@@ -17,6 +17,7 @@ import com.baidu.tts.f.n;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Random;
 
 public class MainActivity extends Activity {
 
@@ -30,8 +31,10 @@ public class MainActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        findViewById(R.id.init).setOnClickListener(onClickListener);
-        findViewById(R.id.speak).setOnClickListener(onClickListener);
+        findViewById(R.id.online).setOnClickListener(onClickListener);
+        findViewById(R.id.mix).setOnClickListener(onClickListener);
+        findViewById(R.id.speaker).setOnClickListener(onClickListener);
+        findViewById(R.id.play).setOnClickListener(onClickListener);
         findViewById(R.id.pause).setOnClickListener(onClickListener);
         findViewById(R.id.resume).setOnClickListener(onClickListener);
         findViewById(R.id.destroy).setOnClickListener(onClickListener);
@@ -41,10 +44,22 @@ public class MainActivity extends Activity {
         @Override
         public void onClick(View v) {
             switch (v.getId()) {
-                case R.id.init:
-                    initTts();
+                case R.id.online:
+                    initTts(TtsMode.ONLINE);
                     break;
-                case R.id.speak:
+                case R.id.mix:
+                    initTts(TtsMode.MIX);
+                    break;
+                case R.id.speaker:
+                    if (speechSynthesizer != null) {
+                        speechSynthesizer.stop();
+                        //0 普通女声（默认） 1 普通男声 2 特别男声 3 情感男声<度逍遥> 4 情感儿童声<度丫丫>
+                        int speaker = new Random().nextInt(5);
+                        speechSynthesizer.setParam(SpeechSynthesizer.PARAM_SPEAKER, String.valueOf(speaker));
+                        speak();
+                    }
+                    break;
+                case R.id.play:
                     speak();
                     break;
                 case R.id.pause:
@@ -66,7 +81,7 @@ public class MainActivity extends Activity {
         }
     };
 
-    void initTts() {
+    void initTts(TtsMode mode) {
         if (speechSynthesizer == null) {
             LoggerProxy.printable(true);
 
@@ -86,7 +101,8 @@ public class MainActivity extends Activity {
             speechSynthesizer.setParam(SpeechSynthesizer.PARAM_SPEAKER, "0"); // 设置发声的人声音，在线生效
             speechSynthesizer.setStereoVolume(1.0f, 1.0f); // 设置播放器的音量，即使用speak 播放音量时生效。范围为[0.0f-1.0f]。
             speechSynthesizer.setAudioStreamType(AudioManager.STREAM_MUSIC);
-            speechSynthesizer.initTts(TtsMode.MIX); // 初始化离在线混合模式，如果只需要在线合成功能，使用 TtsMode.ONLINE
+//            speechSynthesizer.setAudioStreamType(AudioManager.MODE_IN_CALL);
+            speechSynthesizer.initTts(mode); // 初始化离在线混合模式，如果只需要在线合成功能，使用 TtsMode.ONLINE
         }
     }
 
@@ -98,6 +114,7 @@ public class MainActivity extends Activity {
          */
         @Override
         public void onSynthesizeStart(String utteranceId) {
+            Log.e("TAG", "onSynthesizeStart: " + utteranceId);
         }
 
         /**
@@ -109,6 +126,7 @@ public class MainActivity extends Activity {
          */
         @Override
         public void onSynthesizeDataArrived(String utteranceId, byte[] bytes, int progress) {
+            Log.e("TAG", "onSynthesizeDataArrived: " + utteranceId);
         }
 
         /**
@@ -118,10 +136,12 @@ public class MainActivity extends Activity {
          */
         @Override
         public void onSynthesizeFinish(String utteranceId) {
+            Log.e("TAG", "onSynthesizeFinish: " + utteranceId);
         }
 
         @Override
         public void onSpeechStart(String utteranceId) {
+            Log.e("TAG", "onSpeechStart: " + utteranceId);
         }
 
         /**
@@ -132,6 +152,7 @@ public class MainActivity extends Activity {
          */
         @Override
         public void onSpeechProgressChanged(String utteranceId, int progress) {
+            Log.e("TAG", "onSpeechProgressChanged: " + utteranceId);
         }
 
         /**
@@ -141,6 +162,7 @@ public class MainActivity extends Activity {
          */
         @Override
         public void onSpeechFinish(String utteranceId) {
+            Log.e("TAG", "onSpeechFinish: " + utteranceId);
         }
 
         /**
@@ -151,6 +173,7 @@ public class MainActivity extends Activity {
          */
         @Override
         public void onError(String utteranceId, SpeechError speechError) {
+            Log.e("TAG", "onError: " + utteranceId + speechError.toString());
         }
     };
 

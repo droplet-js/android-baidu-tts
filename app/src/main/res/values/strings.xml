@@ -1,7 +1,9 @@
 <resources>
     <string name="app_name">android-baidu-tts</string>
-    <string name="opt_init">INIT</string>
-    <string name="opt_speak">SPEAK</string>
+    <string name="opt_online">ONLINE</string>
+    <string name="opt_mix">MIX</string>
+    <string name="opt_speaker">SPEAKER</string>
+    <string name="opt_play">PLAY</string>
     <string name="opt_pause">PAUSE</string>
     <string name="opt_resume">RESUME</string>
     <string name="opt_destroy">DESTROY</string>

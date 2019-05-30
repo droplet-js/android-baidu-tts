@@ -8,16 +8,28 @@
     tools:context=".MainActivity">
 
     <Button
-        android:id="@+id/init"
+        android:id="@+id/online"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="@string/opt_init" />
+        android:text="@string/opt_online" />
 
     <Button
-        android:id="@+id/speak"
+        android:id="@+id/mix"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="@string/opt_speak" />
+        android:text="@string/opt_mix" />
+
+    <Button
+        android:id="@+id/speaker"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/opt_speaker" />
+
+    <Button
+        android:id="@+id/play"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/opt_play" />
 
     <Button
         android:id="@+id/pause"
