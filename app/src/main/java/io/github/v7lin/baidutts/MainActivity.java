@@ -3,9 +3,12 @@ package io.github.v7lin.baidutts;
 import android.app.Activity;
 import android.media.AudioManager;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 import android.util.Log;
 import android.view.View;
 
+import com.baidu.tts.auth.AuthInfo;
 import com.baidu.tts.chainofresponsibility.logger.LoggerProxy;
 import com.baidu.tts.client.SpeechError;
 import com.baidu.tts.client.SpeechSynthesizeBag;
@@ -14,9 +17,12 @@ import com.baidu.tts.client.SpeechSynthesizerListener;
 import com.baidu.tts.client.TtsMode;
 import com.baidu.tts.f.n;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 
 public class MainActivity extends Activity {
@@ -33,7 +39,8 @@ public class MainActivity extends Activity {
         setContentView(R.layout.activity_main);
         findViewById(R.id.online).setOnClickListener(onClickListener);
         findViewById(R.id.mix).setOnClickListener(onClickListener);
-        findViewById(R.id.speaker).setOnClickListener(onClickListener);
+        findViewById(R.id.online_speaker).setOnClickListener(onClickListener);
+        findViewById(R.id.mix_speaker).setOnClickListener(onClickListener);
         findViewById(R.id.play).setOnClickListener(onClickListener);
         findViewById(R.id.pause).setOnClickListener(onClickListener);
         findViewById(R.id.resume).setOnClickListener(onClickListener);
@@ -45,17 +52,25 @@ public class MainActivity extends Activity {
         public void onClick(View v) {
             switch (v.getId()) {
                 case R.id.online:
-                    initTts(TtsMode.ONLINE);
+                    initOnlineTts(OnlineResource.ONLINE_SPEAKER_FEMALE_DEFAULT);
                     break;
                 case R.id.mix:
-                    initTts(TtsMode.MIX);
+                    initMixTts(OnlineResource.ONLINE_SPEAKER_FEMALE_DEFAULT);
                     break;
-                case R.id.speaker:
+                case R.id.online_speaker:
                     if (speechSynthesizer != null) {
-                        speechSynthesizer.stop();
+                        destroy();
                         //0 普通女声（默认） 1 普通男声 2 特别男声 3 情感男声<度逍遥> 4 情感儿童声<度丫丫>
                         int speaker = new Random().nextInt(5);
-                        speechSynthesizer.setParam(SpeechSynthesizer.PARAM_SPEAKER, String.valueOf(speaker));
+                        initOnlineTts(speaker);
+                        speak();
+                    }
+                    break;
+                case R.id.mix_speaker:
+                    if (speechSynthesizer != null) {
+                        destroy();
+                        int speaker = new Random().nextInt(5);
+                        initMixTts(speaker);
                         speak();
                     }
                     break;
@@ -81,7 +96,7 @@ public class MainActivity extends Activity {
         }
     };
 
-    void initTts(TtsMode mode) {
+    void initOnlineTts(int speaker) {
         if (speechSynthesizer == null) {
             LoggerProxy.printable(true);
 
@@ -97,13 +112,120 @@ public class MainActivity extends Activity {
             if (errorCode != 0) {
                 Log.e("TAG", "xxx: " + convertErrMsg(errorCode));
             }
-//            speechSynthesizer.auth(TtsMode.ONLINE);// 首次联网状态时调用，非必要
-            speechSynthesizer.setParam(SpeechSynthesizer.PARAM_SPEAKER, "0"); // 设置发声的人声音，在线生效
+            AuthInfo authInfo = speechSynthesizer.auth(TtsMode.ONLINE);
+            if (authInfo == null || !authInfo.isSuccess()) {
+                destroy();
+                return;
+            }
+            // 设置合成的音量，0-9 ，默认 5
+            speechSynthesizer.setParam(SpeechSynthesizer.PARAM_VOLUME, "9");
+            // 设置合成的语速，0-9 ，默认 5
+            speechSynthesizer.setParam(SpeechSynthesizer.PARAM_SPEED, "5");
+            // 设置合成的语调，0-9 ，默认 5
+            speechSynthesizer.setParam(SpeechSynthesizer.PARAM_PITCH, "5");
             speechSynthesizer.setStereoVolume(1.0f, 1.0f); // 设置播放器的音量，即使用speak 播放音量时生效。范围为[0.0f-1.0f]。
             speechSynthesizer.setAudioStreamType(AudioManager.STREAM_MUSIC);
 //            speechSynthesizer.setAudioStreamType(AudioManager.MODE_IN_CALL);
-            speechSynthesizer.initTts(mode); // 初始化离在线混合模式，如果只需要在线合成功能，使用 TtsMode.ONLINE
+            speechSynthesizer.setParam(SpeechSynthesizer.PARAM_SPEAKER, String.valueOf(speaker)); // 设置发声的人声音，在线生效
+            Map<String, String> params = new HashMap<>();
+            InitConfig config = new InitConfig(APP_ID, APP_KEY, SECRET_KEY, TtsMode.ONLINE, params, speechSynthesizerListener);
+            AutoCheck.getInstance(getApplicationContext()).check(config, new Handler() {
+                @Override
+                public void handleMessage(Message msg) {
+                    super.handleMessage(msg);
+                    if (msg.what == 100) {
+                        AutoCheck autoCheck = (AutoCheck) msg.obj;
+                        synchronized (autoCheck) {
+                            String message = autoCheck.obtainDebugMessage();
+                             Log.w("AutoCheckMessage", message);
+                        }
+                    }
+                }
+            });
+            speechSynthesizer.initTts(TtsMode.ONLINE); // 初始化离在线混合模式，如果只需要在线合成功能，使用 TtsMode.ONLINE
         }
+    }
+
+    void initMixTts(int speaker) {
+        try {
+            if (speechSynthesizer == null) {
+                LoggerProxy.printable(true);
+
+                speechSynthesizer = SpeechSynthesizer.getInstance();
+                speechSynthesizer.setContext(getApplicationContext());
+                speechSynthesizer.setSpeechSynthesizerListener(speechSynthesizerListener);
+
+                int errorCode = speechSynthesizer.setAppId(APP_ID);
+                if (errorCode != 0) {
+                    Log.e("TAG", "xxx: " + convertErrMsg(errorCode));
+                }
+                errorCode = speechSynthesizer.setApiKey(APP_KEY, SECRET_KEY);
+                if (errorCode != 0) {
+                    Log.e("TAG", "xxx: " + convertErrMsg(errorCode));
+                }
+                AuthInfo authInfo = speechSynthesizer.auth(TtsMode.MIX);
+                if (authInfo == null || !authInfo.isSuccess()) {
+                    destroy();
+                    return;
+                }
+                // 设置合成的音量，0-9 ，默认 5
+                speechSynthesizer.setParam(SpeechSynthesizer.PARAM_VOLUME, "9");
+                // 设置合成的语速，0-9 ，默认 5
+                speechSynthesizer.setParam(SpeechSynthesizer.PARAM_SPEED, "5");
+                // 设置合成的语调，0-9 ，默认 5
+                speechSynthesizer.setParam(SpeechSynthesizer.PARAM_PITCH, "5");
+                speechSynthesizer.setStereoVolume(1.0f, 1.0f); // 设置播放器的音量，即使用speak 播放音量时生效。范围为[0.0f-1.0f]。
+                speechSynthesizer.setAudioStreamType(AudioManager.STREAM_MUSIC);
+//                speechSynthesizer.setAudioStreamType(AudioManager.MODE_IN_CALL);
+                speechSynthesizer.setParam(SpeechSynthesizer.PARAM_MIX_MODE, SpeechSynthesizer.MIX_MODE_HIGH_SPEED_SYNTHESIZE_WIFI);
+                OfflineResource offlineResource = createOfflineResource(speaker);
+                // 文本模型文件路径 (离线引擎使用)，注意TEXT_FILENAME必须存在并且可读
+                speechSynthesizer.setParam(SpeechSynthesizer.PARAM_TTS_TEXT_MODEL_FILE, offlineResource.getTextFilename());
+                // 声学模型文件路径 (离线引擎使用)，注意TEXT_FILENAME必须存在并且可读
+                speechSynthesizer.setParam(SpeechSynthesizer.PARAM_TTS_SPEECH_MODEL_FILE, offlineResource.getModelFilename());
+                Map<String, String> params = new HashMap<>();
+                params.put(SpeechSynthesizer.PARAM_TTS_TEXT_MODEL_FILE, offlineResource.getTextFilename());
+                params.put(SpeechSynthesizer.PARAM_TTS_SPEECH_MODEL_FILE, offlineResource.getModelFilename());
+                InitConfig config = new InitConfig(APP_ID, APP_KEY, SECRET_KEY, TtsMode.ONLINE, null, speechSynthesizerListener);
+                AutoCheck.getInstance(getApplicationContext()).check(config, new Handler() {
+                    @Override
+                    public void handleMessage(Message msg) {
+                        super.handleMessage(msg);
+                        if (msg.what == 100) {
+                            AutoCheck autoCheck = (AutoCheck) msg.obj;
+                            synchronized (autoCheck) {
+                                String message = autoCheck.obtainDebugMessage();
+                                Log.w("AutoCheckMessage", message);
+                            }
+                        }
+                    }
+                });
+                speechSynthesizer.initTts(TtsMode.MIX); // 初始化离在线混合模式，如果只需要在线合成功能，使用 TtsMode.ONLINE
+            }
+        } catch (IOException e) {
+            destroy();
+        }
+    }
+
+    private OfflineResource createOfflineResource(int speaker) throws IOException {
+        OfflineResource offlineResource;
+        switch (speaker) {
+            case OnlineResource.ONLINE_SPEAKER_DUYY:
+                offlineResource = new OfflineResource(getApplicationContext(), OfflineResource.OFFLINE_SPEAKER_DUYY);
+                break;
+            case OnlineResource.ONLINE_SPEAKER_DUXY:
+                offlineResource = new OfflineResource(getApplicationContext(), OfflineResource.OFFLINE_SPEAKER_DUXY);
+                break;
+            case OnlineResource.ONLINE_SPEAKER_SPMALE:
+            case OnlineResource.ONLINE_SPEAKER_MALE:
+                offlineResource = new OfflineResource(getApplicationContext(), OfflineResource.OFFLINE_SPEAKER_MALE);
+                break;
+            case OnlineResource.ONLINE_SPEAKER_FEMALE_DEFAULT:
+            default:
+                offlineResource = new OfflineResource(getApplicationContext(), OfflineResource.OFFLINE_SPEAKER_FEMALE);
+                break;
+        }
+        return offlineResource;
     }
 
     private SpeechSynthesizerListener speechSynthesizerListener = new SpeechSynthesizerListener() {

@@ -20,10 +20,16 @@
         android:text="@string/opt_mix" />
 
     <Button
-        android:id="@+id/speaker"
+        android:id="@+id/online_speaker"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="@string/opt_speaker" />
+        android:text="@string/opt_online_speaker" />
+
+    <Button
+        android:id="@+id/mix_speaker"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/opt_mix_speaker" />
 
     <Button
         android:id="@+id/play"

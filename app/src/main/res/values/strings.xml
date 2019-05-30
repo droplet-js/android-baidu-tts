@@ -2,7 +2,8 @@
     <string name="app_name">android-baidu-tts</string>
     <string name="opt_online">ONLINE</string>
     <string name="opt_mix">MIX</string>
-    <string name="opt_speaker">SPEAKER</string>
+    <string name="opt_online_speaker">ONLINE_SPEAKER</string>
+    <string name="opt_mix_speaker">MIX_SPEAKER</string>
     <string name="opt_play">PLAY</string>
     <string name="opt_pause">PAUSE</string>
     <string name="opt_resume">RESUME</string>
